@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { WebScrapingService } from './web_scraping.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags("web-scraping")
 @Controller('web-scraping')
 export class WebScrapingController {
     constructor(private readonly webScrapingService: WebScrapingService) {

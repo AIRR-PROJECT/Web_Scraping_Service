@@ -10,6 +10,7 @@ export type SampleDocument = HydratedDocument<Sample>; // Export type để defi
     updatedAt: 'updated_at'
   }
 })
+
 export class Sample extends Model{
   @Prop({ required: true })
   name: string;

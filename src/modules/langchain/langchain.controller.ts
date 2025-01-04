@@ -11,4 +11,9 @@ export class LangChainController {
         const response = await this.LangChainService.jobSuggestion(body);
         return { message: response.message, data: response.data };
     }
+
+    @Get('blog-post-process')
+    async blogSummary() {
+        const response = await this.LangChainService.blogScrapePostProcess();
+    }
 }

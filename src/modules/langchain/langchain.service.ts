@@ -1,13 +1,19 @@
+// NestJS
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
-import { JobSuggestionDto, PostDataDto } from './common/dto/langchain.dto';
+// Langchain and Huggingface
 import { ChatOpenAI } from '@langchain/openai';
 import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
 import { CommaSeparatedListOutputParser } from '@langchain/core/output_parsers';
 import { HfInference } from '@huggingface/inference';
+import { JobSuggestionDto, PostData } from './common/dto/langchain.dto';
+// Moongose
+import { BlogSummarize } from 'src/schemas/blog_summarize.schema';
+
+// Node.js
 import * as fs from 'fs';
 import * as path from 'path';
-// import { examples_job_suggestion_option1_prompt } from './common/langchain.support';
 
 @Injectable()
 export class LangChainService {
@@ -76,7 +82,11 @@ export class LangChainService {
         'work in startups company',
     ];
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(
+        private readonly configService: ConfigService,
+        @InjectModel(BlogSummarize.name)
+        private readonly blogSummarizeModel: BlogSummarize,
+    ) {
         console.log('LangChainService initialized');
         const openAIapiKey = this.configService.get<string>('OPENAI_API_KEY');
         const hfapiToken = this.configService.get<string>(
@@ -130,7 +140,7 @@ export class LangChainService {
             format_instructions: format_instructions,
         });
 
-        console.log(formatted.toString());
+        // console.log(formatted.toString());
 
         const response = await this.model.invoke(formatted.toString());
         return {
@@ -140,14 +150,44 @@ export class LangChainService {
         };
     }
 
-    async blogSummarize(content: PostDataDto[]) {
-        // const response = await this.hf.summarization({
-        //     model: 'facebook/bart-large-cnn',
-        //     inputs: content,
-        //     parameters: {
-        //         max_length: 100,
-        //     },
-        // });
-        // return response.summary_text;
+    async blogScrapePostProcess() {
+        // read json file
+        const blogPath = path.join(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            'public',
+            'web_data',
+            'output.json',
+        );
+        const blogData: PostData[] = JSON.parse(
+            fs.readFileSync(blogPath, 'utf8'),
+        );
+
+        const processedData = await Promise.all(
+            blogData.map(async (blog) => {
+                // Process each blog entry
+                blog['content'] = await this.processSummaryBlogContent(
+                    blog['content'],
+                );
+                return blog;
+            }),
+        );
+
+        console.log(processedData);
+        // Save to MongoDB
+        await this.blogSummarizeModel.insertMany(processedData);
+    }
+
+    private async processSummaryBlogContent(content: string) {
+        const response = await this.hf.summarization({
+            model: 'facebook/bart-large-cnn',
+            inputs: content,
+            parameters: {
+                max_length: 100,
+            },
+        });
+        return response.summary_text;
     }
 }

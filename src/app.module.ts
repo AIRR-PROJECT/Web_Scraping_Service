@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { WebScrapingModule } from './modules/web_scraping/web_scraping.module';
 import { CronJobModule } from './modules/cron_job/cron_job.module';
 import { LangChainModule } from './modules/langchain/langchain.module';
+import { DatabaseModule } from './shared/database.module';
 
 @Module({
     imports: [
@@ -13,9 +14,10 @@ import { LangChainModule } from './modules/langchain/langchain.module';
         }),
         LangChainModule,
         WebScrapingModule,
+        DatabaseModule,
         // CronJobModule
     ],
-    // imports: [WebScrapingModule, CronJobModule, LangChainModule],
+    // imports: [WebScrapingModule, CronJobModule, LangchainModule, DatabaseModule],
     controllers: [AppController],
     providers: [AppService],
 })

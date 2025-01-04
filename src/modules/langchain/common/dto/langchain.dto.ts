@@ -9,7 +9,7 @@ export interface JobSuggestionDto {
     questions?: string[];
 }
 
-export interface PostDataDto {
+export interface PostData {
     title: string;
     tags: string[];
     link: string;

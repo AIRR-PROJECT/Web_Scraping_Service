@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { LangChainService } from '../langchain/langchain.service';
 import * as fs from 'fs';
 import beautifyHelper from 'src/helper/beautifyFile';
 import * as path from 'path';
@@ -25,10 +24,6 @@ export class WebScrapingService {
     private onlyBrowser: Browser | null = null;
     private promiseBrowser: Promise<Browser> | null = null;
     private pageUsage = [];
-
-    constructor(private readonly langChainService: LangChainService) {
-        console.log('WebScrapingService initialized');
-    }
 
     async initBrowser() {
         if (this.onlyBrowser && this.onlyBrowser.isConnected()) {
@@ -213,7 +208,7 @@ export class WebScrapingService {
                 }
 
                 // Write data to file
-                const outputFilePath = path.join(outputDir, 'output.txt');
+                const outputFilePath = path.join(outputDir, 'output.json');
                 const ws = fs.createWriteStream(outputFilePath, { flags: 'w' });
 
                 // Convert and beautify JSON
@@ -224,9 +219,6 @@ export class WebScrapingService {
                 ws.end();
 
                 console.log(`Data written to: ${outputFilePath}`);
-
-                // Summarize the blog content
-                this.langChainService.blogSummarize(postsData);
 
                 resolve(postsData);
             } catch (error) {
